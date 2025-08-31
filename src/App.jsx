@@ -1,25 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Float, Environment } from '@react-three/drei';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, Float, Environment, Text3D } from '@react-three/drei';
 import { Star, Users, Clock, ArrowRight, Play, CheckCircle } from 'lucide-react';
-import gsap from 'gsap';
+import * as THREE from 'three';
 
-// 3D Foam Bubbles Component
+// Animated 3D Foam Bubbles
 function FoamBubbles({ count = 50 }) {
   const bubbles = useRef([]);
   
-  useEffect(() => {
+  useFrame((state) => {
     bubbles.current.forEach((bubble, i) => {
-      gsap.to(bubble.position, {
-        y: bubble.position.y + 10,
-        duration: 3 + Math.random() * 2,
-        repeat: -1,
-        ease: "none",
-        delay: i * 0.1
-      });
+      if (bubble) {
+        bubble.position.y += 0.02;
+        bubble.rotation.y += 0.01;
+        if (bubble.position.y > 10) {
+          bubble.position.y = -10;
+        }
+      }
     });
-  }, []);
+  });
 
   return (
     <>
@@ -51,16 +51,11 @@ function FoamBubbles({ count = 50 }) {
 function Phone3D() {
   const phoneRef = useRef();
   
-  useEffect(() => {
+  useFrame((state) => {
     if (phoneRef.current) {
-      gsap.to(phoneRef.current.rotation, {
-        y: Math.PI * 2,
-        duration: 20,
-        repeat: -1,
-        ease: "none"
-      });
+      phoneRef.current.rotation.y += 0.01;
     }
-  }, []);
+  });
 
   return (
     <group ref={phoneRef}>
@@ -84,13 +79,29 @@ function Phone3D() {
   );
 }
 
+// 3D Scene Component
+function Scene() {
+  return (
+    <>
+      <Environment preset="sunset" />
+      <ambientLight intensity={0.5} />
+      <pointLight position={[10, 10, 10]} intensity={1} />
+      <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+        <Phone3D />
+      </Float>
+      <FoamBubbles count={100} />
+      <OrbitControls enableZoom={false} enablePan={false} />
+    </>
+  );
+}
+
 // Countdown Timer Component
 function CountdownTimer() {
   const [timeLeft, setTimeLeft] = useState(() => {
     const saved = localStorage.getItem('foamPartyCountdown');
     if (saved) {
       const remaining = parseInt(saved) - Math.floor((Date.now() - parseInt(localStorage.getItem('foamPartyStart'))) / 1000);
-      return remaining > 0 ? remaining : 600; // 10 minutes = 600 seconds
+      return remaining > 0 ? remaining : 600;
     }
     return 600;
   });
@@ -133,13 +144,7 @@ function CountdownTimer() {
 
 // Main App Component
 function App() {
-  const [isPlaying, setIsPlaying] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
-
-  const handlePlayVideo = () => {
-    setIsPlaying(true);
-    setShowVideo(true);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 overflow-hidden">
@@ -150,15 +155,11 @@ function App() {
       <section className="relative min-h-screen flex items-center justify-center">
         {/* 3D Background */}
         <div className="absolute inset-0">
-          <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
-            <Environment preset="sunset" />
-            <ambientLight intensity={0.5} />
-            <pointLight position={[10, 10, 10]} intensity={1} />
-            <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-              <Phone3D />
-            </Float>
-            <FoamBubbles count={100} />
-            <OrbitControls enableZoom={false} enablePan={false} />
+          <Canvas
+            camera={{ position: [0, 0, 5], fov: 75 }}
+            style={{ background: 'transparent' }}
+          >
+            <Scene />
           </Canvas>
         </div>
 
@@ -212,7 +213,7 @@ function App() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={handlePlayVideo}
+              onClick={() => setShowVideo(true)}
               className="bg-white/20 backdrop-blur-sm text-white font-bold text-xl px-8 py-4 rounded-full border-2 border-white/30 hover:bg-white/30 transition-all duration-300 flex items-center space-x-2"
             >
               <Play className="w-6 h-6" />
