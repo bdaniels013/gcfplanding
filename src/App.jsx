@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Text3D, Float, Environment } from '@react-three/drei';
-import { Phone, Star, Users, Clock, ArrowRight, Play, CheckCircle } from 'lucide-react';
+import { OrbitControls, Float, Environment } from '@react-three/drei';
+import { Star, Users, Clock, ArrowRight, Play, CheckCircle } from 'lucide-react';
 import gsap from 'gsap';
 
 // 3D Foam Bubbles Component
